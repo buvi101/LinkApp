@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const SECRET 
+const SECRET = process.env.JWT_SECRET;
 
 // ===== Middleware =====
 app.use(cors({
@@ -81,7 +81,7 @@ app.post('/login', async (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || '*',
+    origin: 'https://linkapp-2.onrender.com',
   }
 });
 
