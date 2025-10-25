@@ -8,7 +8,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: 100dvh; /* FIX ✅ use dynamic viewport height */
   background: #0b141a;
 }
 
@@ -75,7 +75,7 @@
 .chat-container {
   display: flex;
   width: 100%;
-  height: 100vh;
+  height: 100dvh; /* FIX ✅ dynamic vh for real mobile safe area */
   overflow: hidden;
   background: #0b141a;
 }
@@ -127,7 +127,7 @@
   font-size: 15px;
 }
 
-.search:focus{
+.search:focus {
   outline: none;
   border: 1px solid #25d366;
 }
@@ -190,6 +190,7 @@
   display: flex;
   flex-direction: column;
   background: #0b141a;
+  height: 100%; /* FIX ✅ ensures proper flex fill */
 }
 
 .chat-header {
@@ -260,6 +261,8 @@
   flex-direction: column;
   gap: 12px;
   overflow-y: auto;
+  overscroll-behavior: contain; /* FIX ✅ prevents bouncing */
+  -webkit-overflow-scrolling: touch;
 }
 
 .chat-message {
@@ -285,6 +288,9 @@
 .chat-input {
   display: flex;
   padding: 20px;
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
 }
 
 .chat-input input {
@@ -297,7 +303,7 @@
   font-size: 16px;
 }
 
-.chat-input input:focus{
+.chat-input input:focus {
   outline: none;
   border: 1px solid #25d366;
 }
@@ -339,23 +345,24 @@
 
 /* ===== Responsive Design ===== */
 @media (max-width: 768px) {
-
-  html, body {
+  html,
+  body {
     height: 100%;
     overflow: hidden;
   }
 
   .chat-container {
-    height: 100vh;
+    height: 100dvh; /* FIX ✅ dynamic viewport */
     overflow: hidden;
+    flex-direction: column;
   }
 
   .chat-window {
     flex: 1;
-    display: flex;
-    flex-direction: column;
     height: 100%;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .chat-body {
@@ -372,11 +379,7 @@
   }
 
   .auth-box {
-  width: 60%;
-}
-
-  .chat-container {
-    flex-direction: column;
+    width: 80%; /* FIX ✅ more mobile-friendly */
   }
 
   .sidebar {
@@ -414,8 +417,7 @@
   }
 
   .user-item {
-  width: 77%;
-  font-size: 18px;
-}
-
+    width: 85%; /* FIX ✅ fits smaller screens */
+    font-size: 18px;
+  }
 }
