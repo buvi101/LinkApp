@@ -9,16 +9,17 @@ const mongoose = require('mongoose');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const SECRET = process.env.JWT_SECRET;
+const SECRET = process.env.JWT_SECRET; // JWT secret from environment
 
 // ===== Middleware =====
 app.use(cors({
-  origin: 'https://linkapp-2.onrender.com', // set your frontend URL in Render env
+  origin: "https://linkapp-2.onrender.com", // set your frontend URL in Render env
+  credentials: true,
 }));
 app.use(express.json());
 
 // ===== MongoDB Connection =====
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB Connected ✅'))
   .catch(err => console.log('MongoDB Connection Error ❌', err));
 
@@ -31,14 +32,11 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 
 // ===== Health Check =====
-app.get('/', (req, res) => {
-  res.send('Backend is running!');
-});
+app.get('/', (req, res) => res.send('Backend is running! 🚀'));
 
 // ===== Signup =====
 app.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
-
   try {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: 'Email already registered' });
@@ -57,7 +55,6 @@ app.post('/signup', async (req, res) => {
 // ===== Login =====
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: 'Invalid email or password' });
@@ -65,11 +62,7 @@ app.post('/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: 'Invalid email or password' });
 
-    const token = jwt.sign(
-      { username: user.username, email: user.email },
-      SECRET,
-      { expiresIn: '1h' }
-    );
+    const token = jwt.sign({ username: user.username, email: user.email }, SECRET, { expiresIn: '1h' });
     res.json({ token, username: user.username });
   } catch (err) {
     console.error('Login error:', err);
@@ -77,11 +70,12 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// ===== Socket Setup =====
+// ===== Socket.IO Setup =====
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'https://linkapp-2.onrender.com',
+    origin: "https://linkapp-2.onrender.com", // frontend URL from env
+    methods: ["GET", "POST"],
   }
 });
 
@@ -103,10 +97,12 @@ io.use((socket, next) => {
 io.on('connection', (socket) => {
   const username = socket.user.username;
   onlineUsers.set(username, socket.id);
-
   console.log(`${username} connected`);
+
+  // Emit online users list
   io.emit('online_users', Array.from(onlineUsers.keys()));
 
+  // Private message
   socket.on('send_private_message', ({ to, text }) => {
     const targetSocketId = onlineUsers.get(to);
     if (targetSocketId) {
@@ -117,6 +113,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Disconnect
   socket.on('disconnect', () => {
     onlineUsers.delete(username);
     io.emit('online_users', Array.from(onlineUsers.keys()));
