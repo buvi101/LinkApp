@@ -299,8 +299,6 @@
 .chat-input {
   display: flex;
   padding: 15px;
-  background: #111b21;
-  border-top: 1px solid #2a3942;
 }
 
 .chat-input input {
