@@ -9,16 +9,18 @@ const mongoose = require('mongoose');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const SECRET = process.env.JWT_SECRET;
+const SECRET 
 
 // ===== Middleware =====
-app.use(cors());
+app.use(cors({
+  origin: 'https://linkapp-2.onrender.com', // set your frontend URL in Render env
+}));
 app.use(express.json());
 
 // ===== MongoDB Connection =====
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.log(err));
+  .then(() => console.log('MongoDB Connected ✅'))
+  .catch(err => console.log('MongoDB Connection Error ❌', err));
 
 // ===== User Schema =====
 const userSchema = new mongoose.Schema({
@@ -28,41 +30,64 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', userSchema);
 
+// ===== Health Check =====
+app.get('/', (req, res) => {
+  res.send('Backend is running!');
+});
+
 // ===== Signup =====
 app.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
 
-  const existing = await User.findOne({ email });
-  if (existing) return res.status(400).json({ message: 'Email already registered' });
+  try {
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(400).json({ message: 'Email already registered' });
 
-  const hashed = await bcrypt.hash(password, 10);
-  const user = new User({ username, email, password: hashed });
-  await user.save();
+    const hashed = await bcrypt.hash(password, 10);
+    const user = new User({ username, email, password: hashed });
+    await user.save();
 
-  res.json({ message: 'User registered successfully' });
+    res.json({ message: 'User registered successfully' });
+  } catch (err) {
+    console.error('Signup error:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 // ===== Login =====
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
-  if (!user) return res.status(401).json({ message: 'Invalid email or password' });
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ message: 'Invalid email or password' });
 
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) return res.status(401).json({ message: 'Invalid email or password' });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ message: 'Invalid email or password' });
 
-  const token = jwt.sign({ username: user.username, email: user.email }, SECRET, { expiresIn: '1h' });
-  res.json({ token, username: user.username });
+    const token = jwt.sign(
+      { username: user.username, email: user.email },
+      SECRET,
+      { expiresIn: '1h' }
+    );
+    res.json({ token, username: user.username });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 // ===== Socket Setup =====
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || '*',
+  }
+});
 
 const onlineUsers = new Map();
 
-// ===== Middleware for Socket Authentication =====
+// ===== Socket Authentication =====
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error('Authentication required'));
@@ -99,4 +124,5 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ===== Start Server =====
+server.listen(PORT, () => console.log(`Server running on port ${PORT} 🚀`));
