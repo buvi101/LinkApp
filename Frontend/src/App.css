@@ -1,6 +1,7 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 /* ===== Auth Screen ===== */
@@ -8,7 +9,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100dvh; /* FIX ✅ use dynamic viewport height */
+  height: 100dvh;
   background: #0b141a;
 }
 
@@ -75,9 +76,9 @@
 .chat-container {
   display: flex;
   width: 100%;
-  height: 100dvh; /* FIX ✅ dynamic vh for real mobile safe area */
-  overflow: hidden;
+  height: 100dvh;
   background: #0b141a;
+  overflow: hidden;
 }
 
 /* ===== Sidebar ===== */
@@ -190,7 +191,8 @@
   display: flex;
   flex-direction: column;
   background: #0b141a;
-  height: 100%; /* FIX ✅ ensures proper flex fill */
+  height: 100%;
+  overflow: hidden;
 }
 
 .chat-header {
@@ -261,8 +263,16 @@
   flex-direction: column;
   gap: 12px;
   overflow-y: auto;
-  overscroll-behavior: contain; /* FIX ✅ prevents bouncing */
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* === New fix for real mobile keyboard === */
+@supports (height: 100svh) {
+  .chat-container {
+    height: 100svh; /* Safe visual viewport height on modern browsers */
+  }
 }
 
 .chat-message {
@@ -285,12 +295,12 @@
   color: white;
 }
 
+/* === Fix: no sticky input on mobile (causes cutoff) === */
 .chat-input {
   display: flex;
-  padding: 20px;
-  position: sticky;
-  bottom: 0;
-  z-index: 20;
+  padding: 15px;
+  background: #111b21;
+  border-top: 1px solid #2a3942;
 }
 
 .chat-input input {
@@ -352,39 +362,36 @@
   }
 
   .chat-container {
-    height: 100dvh; /* FIX ✅ dynamic viewport */
-    overflow: hidden;
     flex-direction: column;
+    height: 100dvh;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: 100%;
   }
 
   .chat-window {
     flex: 1;
-    height: 100%;
-    overflow: hidden;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
 
   .chat-body {
     flex: 1;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 80px; /* prevent overlap with input */
+    padding-bottom: 90px; /* Reserve space for input on small screens */
   }
 
   .chat-input {
-    position: sticky;
+    position: relative;
     bottom: 0;
-    padding: 15px;
+    padding: 12px;
   }
 
   .auth-box {
-    width: 80%; /* FIX ✅ more mobile-friendly */
-  }
-
-  .sidebar {
-    width: 100%;
-    height: 90%;
+    width: 80%;
   }
 
   .chat-container.mobile-chat .sidebar {
@@ -397,11 +404,6 @@
 
   .back-btn {
     display: inline;
-  }
-
-  .chat-header {
-    font-size: 18px;
-    padding: 15px;
   }
 
   .chat-message {
@@ -417,7 +419,7 @@
   }
 
   .user-item {
-    width: 85%; /* FIX ✅ fits smaller screens */
+    width: 85%;
     font-size: 18px;
   }
 }
