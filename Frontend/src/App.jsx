@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import axios from "axios";
 import "./App.css";
 
-const SERVER_URL = "https://linkapp-1-3syt.onrender.com";
+const SERVER_URL = "http://localhost:3000";
 
 
 function App() {
